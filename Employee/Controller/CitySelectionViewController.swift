@@ -114,7 +114,7 @@ extension CitySelectionViewController: UITableViewDataSource {
         viewbg.isUserInteractionEnabled = true
         
         let nameLabel = UILabel()
-        nameLabel.frame = CGRect(x: 55, y: 2, width:ScreenSize.SCREEN_WIDTH - 60, height: 40)
+        nameLabel.frame = CGRect(x: 10, y: 0, width:ScreenSize.SCREEN_WIDTH - 60, height: 40)
         nameLabel.backgroundColor = UIColor.clear
         
         nameLabel.font = UIFont(name: "helvetica", size: 16.0)
@@ -131,7 +131,7 @@ extension CitySelectionViewController: UITableViewDataSource {
         }
         
         let lineView = UIView()
-        lineView.frame=CGRect(x:50,y:viewbg.frame.size.height-1.0,width:viewbg.frame.size.width-50,height:1.0);
+        lineView.frame=CGRect(x:10,y:viewbg.frame.size.height-1.0,width:viewbg.frame.size.width-20,height:1.0);
         lineView.backgroundColor = UIColor.lightGray
         viewbg.addSubview(lineView)
         cell.contentView.addSubview(viewbg)
