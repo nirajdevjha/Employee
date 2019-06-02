@@ -12,7 +12,6 @@ import CoreData
 class EmployeeListViewController: UIViewController {
     
     @IBOutlet weak var employeeTableView: UITableView!
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var employeeArray:[EmployeeViewModel]?
     var isEdit = false
     var selectedIndexPath: IndexPath?
@@ -40,7 +39,7 @@ class EmployeeListViewController: UIViewController {
     }
     
     private func getDataFromCoreData() {
-        //Core Database Context
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let context = appDelegate.persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "EmployeeItem")
         
@@ -83,6 +82,7 @@ class EmployeeListViewController: UIViewController {
     
     
     private func deleteFromCoreData() {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let context = appDelegate.persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "EmployeeItem")
         let deleteBatchRequest = NSBatchDeleteRequest(fetchRequest: request)
@@ -115,7 +115,6 @@ class EmployeeListViewController: UIViewController {
             UIView.setAnimationTransition(UIView.AnimationTransition.flipFromRight, for: (self.navigationController?.view)!, cache: false)
         }
     }
-    
 }
 
  //MARK:- TableView delegate/datasource
@@ -137,6 +136,42 @@ extension EmployeeListViewController : UITableViewDelegate, UITableViewDataSourc
         selectedIndexPath = indexPath
         isEdit = true
         navigateToEmployeeForm()
+    }
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let employeeViewModel = employeeArray![indexPath.row]
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "EmployeeItem")
+        fetchRequest.predicate = NSPredicate(format: "employeeName = %@", employeeViewModel.employeeName)
+        
+        if editingStyle == .delete {
+            do {
+                let fetch = try managedContext.fetch(fetchRequest)
+                let objectToDelete = fetch[0] as! NSManagedObject
+                managedContext.delete(objectToDelete)
+                
+                do {
+                    try managedContext.save()
+                    employeeArray?.remove(at: indexPath.row)
+                    tableView.deleteRows(at: [indexPath], with: .fade)
+                }
+                catch
+                {
+                    print(error)
+                }
+            }
+            catch
+            {
+                print(error)
+            }
+        }
     }
 }
 

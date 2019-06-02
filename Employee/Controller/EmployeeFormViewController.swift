@@ -18,7 +18,6 @@ class EmployeeFormViewController: UIViewController {
     @IBOutlet weak var cityTextField: UITextField!
     @IBOutlet weak var isMarriedSwitch: UISwitch!
     
-    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
     var employeeName: String?
     var email: String?
@@ -48,6 +47,8 @@ class EmployeeFormViewController: UIViewController {
     }
     
     private func updateEmployeeToCoreData(dataArray:[Employee]) {
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let context = appDelegate.persistentContainer.viewContext
         let entity = NSEntityDescription.entity(forEntityName: "EmployeeItem", in: context)
         
