@@ -24,8 +24,9 @@ class EmployeeFormViewController: UIViewController {
     var city: String?
     var isMarried = false
     var navigationTitle: String?
-    
+    var isUpdate = false
     var employeeViewModel:EmployeeViewModel?
+    var updateEmpName: String?
     
     //MARK:- Life Cycle
     override func viewDidLoad() {
@@ -44,9 +45,10 @@ class EmployeeFormViewController: UIViewController {
         emailTextField.text = employeeViewModel?.emailId
         cityTextField.text = employeeViewModel?.city
         isMarriedSwitch.isOn = employeeViewModel?.isMarried ?? false
+        updateEmpName = employeeViewModel?.employeeName
     }
     
-    private func updateEmployeeToCoreData(dataArray:[Employee]) {
+    private func addEmployeeToCoreData(dataArray:[Employee]) {
         
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
         let context = appDelegate.persistentContainer.viewContext
@@ -62,19 +64,55 @@ class EmployeeFormViewController: UIViewController {
         }
         do {
             try context.save()
-            let alertController  = UIAlertController(title:nil, message: "Successfully Saved", preferredStyle: .alert)
-            let alertActon   = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-                guard let self = self else { return }
-                self.dismiss(animated: true, completion: nil)
-                self.navigationController?.popViewController(animated: true
-                )
-            }
-            alertController.addAction(alertActon)
-            present(alertController, animated:true, completion: nil)
+            showAlert(title: nil, message: "successfully saved")
             
         } catch {
             print("Failed to save")
         }
+    }
+    
+    private func updateDataToCoreData(dataArray:[Employee]) {
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        let employeeViewModel = dataArray[0]
+        
+        let fetchRequest:NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "EmployeeItem")
+        fetchRequest.predicate = NSPredicate(format: "employeeName = %@", updateEmpName ?? "")
+        
+        do {
+            let fetch = try managedContext.fetch(fetchRequest)
+            let objectUpdate = fetch[0] as! NSManagedObject
+            objectUpdate.setValue(employeeViewModel.employeeName, forKey: "employeeName")
+            objectUpdate.setValue(employeeViewModel.emailId, forKey: "emailId")
+            objectUpdate.setValue(employeeViewModel.city, forKey: "city")
+            objectUpdate.setValue(employeeViewModel.isMarried, forKey: "married")
+            do {
+                try managedContext.save()
+                showAlert(title: nil, message: "successfully updated")
+                
+            }
+            catch {
+                print(error)
+            }
+        }
+        catch
+        {
+            print(error)
+        }
+    }
+    
+    private func showAlert(title: String?, message: String) {
+        let alertController  = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let alertActon   = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.dismiss(animated: true, completion: nil)
+            self.navigationController?.popViewController(animated: true
+            )
+        }
+        alertController.addAction(alertActon)
+        present(alertController, animated:true)
     }
     
     @objc func saveDetails() {
@@ -87,12 +125,17 @@ class EmployeeFormViewController: UIViewController {
                 var array = [Employee]()
                 let emp = Employee(employeeName: employeeName, emailId: email, city: city, isMarried: isMarried)
                 array.append(emp)
-                updateEmployeeToCoreData(dataArray: array)
+                if isUpdate {
+                    updateDataToCoreData(dataArray: array)
+                } else {
+                    addEmployeeToCoreData(dataArray: array)
+                }
+                
             } else {
                 let alertController  = UIAlertController(title:"Error", message: "Pls fill in all details", preferredStyle: .alert)
                 let alertActon   = UIAlertAction(title: "OK", style:.cancel, handler: nil)
                 alertController.addAction(alertActon)
-                present(alertController, animated:true, completion: nil)
+                present(alertController, animated:true)
             }
         }
     }

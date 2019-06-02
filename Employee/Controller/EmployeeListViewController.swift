@@ -71,29 +71,11 @@ class EmployeeListViewController: UIViewController {
                 
                 employeeTableView.reloadData()
             }
-            else {
-                //Delete old data from database
-                //                deleteFromCoreData()
-            }
         } catch {
             //TO::DO Error
         }
     }
     
-    
-    private func deleteFromCoreData() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-        let context = appDelegate.persistentContainer.viewContext
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "EmployeeItem")
-        let deleteBatchRequest = NSBatchDeleteRequest(fetchRequest: request)
-        
-        do {
-            try context.execute(deleteBatchRequest)
-            try context.save()
-        } catch {
-            print ("There was an error")
-        }
-    }
     
     @objc func addEmployee() {
         navigateToEmployeeForm()
@@ -105,9 +87,11 @@ class EmployeeListViewController: UIViewController {
             let employeeViewModel = employeeArray![(selectedIndexPath?.row)!]
             employeeFormVC.employeeViewModel = employeeViewModel
             employeeFormVC.navigationTitle = "Edit Employee"
+            employeeFormVC.isUpdate = true
             isEdit = false
         } else {
             employeeFormVC.navigationTitle = "Add Employee"
+            employeeFormVC.isUpdate = false
         }
         UIView.animate(withDuration: 0.75) {
             UIView.setAnimationCurve(UIView.AnimationCurve.easeInOut)
